@@ -1,4 +1,4 @@
-package com.eazybytes.accounts.dto;
+package com.eazybytes.cards.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 /**
  * Author: ldeepak
  */
-
-@Data @AllArgsConstructor
+@Data
+@AllArgsConstructor
 @Schema(
 		name = "ErrorResponse",
 		description = "Schema to hold error response information"
