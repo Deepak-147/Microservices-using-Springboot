@@ -17,3 +17,10 @@ Microservices using springboot
 - Input validation
 - Audit columns
 - Swagger API documentation
+
+### Section 4: Containerization of services using Docker
+- Method 1: Using Dockerfile
+  - Creating jar file using maven command
+  - Writing instructions in Dockerfile
+  - Generate the docker image
+  - Run the docker image
