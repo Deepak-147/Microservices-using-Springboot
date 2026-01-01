@@ -38,8 +38,6 @@ Microservices using springboot
       - It is only for Java based project
       - This will be used throughout this course
 
-- **Creating docker images using one of the 3 ways**
-
 - **Running the docker images as containers**
 
     ```bash
