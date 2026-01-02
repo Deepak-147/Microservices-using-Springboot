@@ -78,7 +78,7 @@ Microservices using springboot
   - How do we maintain configuration/properties in a centralized repository along with versioning
 
 - **Solutions:**
-  - Configuring Spring Boot with properties and profiles
+  - **Configuring Spring Boot with properties and profiles**
     - **Properties:**
       - Using @Value Annotation
       - Using Environment interface
@@ -86,7 +86,7 @@ Microservices using springboot
     - **Profiles:**
       - The default profile is active. But we can create another profiles for each environment and activate it based on our requirements
 
-  - Applying external configuration with Spring Boot
+  - **Applying external configuration with Spring Boot**
     - **Command line arguments:**
       - Command-line args are automatically converted to key/value pairs
       - Has Highest precedence
@@ -113,5 +113,5 @@ Microservices using springboot
 
     Command line args (Highest) > JVM properties > Environment variables > Application property files (Lowest)
 
-  - Implementing a configuration server with Spring Cloud Config server
+  - **Implementing a configuration server with Spring Cloud Config server**
 
