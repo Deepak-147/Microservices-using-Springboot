@@ -48,24 +48,43 @@ Microservices using springboot
 
 - **Listing the images**
 
-    ![Alt Text](./section4/images/list-images.png)
+    ![Alt Text](./images/list-images.png)
     
 - **Listing the containers**
 
-    ![Alt Text](./section4/images/list-containers.png)
+    ![Alt Text](./images/list-containers.png)
   
 - **Pushing the docker images to docker repository using Docker desktop UI**
-    ![Alt Text](./section4/images/docker-push.png)
+    ![Alt Text](./images/docker-push.png)
     
 - **Docker compose**
   To run multi-container applications
     - Create docker-compose.yaml file
     - Run all the containers at once using ```docker compose up``` command
 
-      ![Alt Text](./section4/images/docker-compose-up.png)
+      ![Alt Text](./images/docker-compose-up.png)
 
-      ![Alt Text](./section4/images/docker-desktop.png)
+      ![Alt Text](./images/docker-desktop.png)
 
   - Stop all the containers at once using ```docker compose down``` command
 
-    ![Alt Text](./section4/images/docker-compose-down.png)
+    ![Alt Text](./images/docker-compose-down.png)
+
+### Section 6: Configuration Management in Microservices
+
+- **Challenges:**
+  - How do we separate the configuration/properties from the microservices so that the same docker image can be deployed in different environments
+  - How do we inject the configuration/properties needed by the microservice during the startup of the service
+  - How do we maintain configuration/properties in a centralized repository along with versioning
+
+- **Solutions:**
+  - Configuring Spring Boot with properties and profiles
+    - Properties:
+      - Using @Value Annotation
+      - Using Environment interface
+      - Using @ConfigurationProperties (RECOMMENDED as it avoids hard coding property keys)
+    - Profiles:
+      - 
+  - Applying external configuration with Spring Boot
+  - Implementing a configuration server with Spring Cloud Config server
+

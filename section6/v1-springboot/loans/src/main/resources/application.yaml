@@ -1,0 +1,20 @@
+server:
+  port: 8090
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update # Hibernate will automatically update the schema based on your entities
+    show-sql: true
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql # On startup, Spring Boot will always run the SQL script located at classpath:schema.sql (in src/main/resources/).
