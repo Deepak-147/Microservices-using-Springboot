@@ -18,9 +18,16 @@ spring:
     init:
       mode: always
       schema-locations: classpath:schema.sql # On startup, Spring Boot will always run the SQL script located at classpath:schema.sql (in src/main/resources/).
+  config:
+    import:
+      - application_qa.yml
+      - application_prod.yml
+  profiles:
+    active:
+      - "qa"
 
 build:
-  version: "1.0"
+  version: "3.0"
 
 accounts:
   message: "Welcome to EazyBank accounts related local APIs "

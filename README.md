@@ -84,7 +84,33 @@ Microservices using springboot
       - Using Environment interface
       - Using @ConfigurationProperties (RECOMMENDED as it avoids hard coding property keys)
     - Profiles:
-      - 
+      - The default profile is active. But we can create another profiles for each environment and activate it based on our requirements
+
   - Applying external configuration with Spring Boot
+    - Command line arguments:
+      - Command-line args are automatically converted to key/value pairs
+      - Has Highest precedence
+      - Ex: ```java -jar <jar-file-name> --key=value```
+
+        ![Alt Text](./images/cmd-args.png)
+
+    - JVM system properties:
+      - It is prefixed with -D
+      - Lower precendence than the command line args, but greater than application property files
+      - Ex: ```java -Dkey=value -jar <jar-file-name>```
+
+        ![Alt Text](./images/vm-options.png)
+
+    - Using Environment variables:
+      - Universally supported
+      - Lower precedence than the JVM properties, but greater than application property files
+      - Ex: ```KEY=value java -jar <jar-file-name>```
+
+        ![Alt Text](./images/env-vars.png)
+    
+
+    So the order or precedence is:
+    Command line args (Highest) > JVM properties > Environment variables > application property files
+    
   - Implementing a configuration server with Spring Cloud Config server
 
