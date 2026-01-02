@@ -113,5 +113,13 @@ Microservices using springboot
 
     Command line args (Highest) > JVM properties > Environment variables > Application property files (Lowest)
 
-  - **Implementing a configuration server with Spring Cloud Config server**
+    Drawbacks:
+    - Involves executing separate commands and manually setting up the application, which can introduce potential errors during deployment
+    - How do we know which configurations were used in a release as there is no tracking of revisions
+    - All the configurations are part of the source code which is not recommended
+    - No control of access to configuration data
+    - Neither properties nor environment variables support encryption of the configuration
+    - After modifying the configuration, the application needs to be restarted
+
+  - **Implementing a configuration server with Spring Cloud Config server (RECOMMENDED)**
 

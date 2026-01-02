@@ -1,5 +1,6 @@
 package com.eazybytes.loans;
 
+import com.eazybytes.loans.dto.LoansContactInfoDto;
 import io.swagger.v3.oas.annotations.ExternalDocumentation;
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.info.Contact;
@@ -7,15 +8,19 @@ import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.info.License;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 /**
  * @EnableJpaAuditing is a Spring annotation that enables JPA Auditing in your application.
  * It allows Spring Data JPA to automatically populate auditing fields like created date, last modified date, created by, and last modified by in your entities when you use annotations such as @CreatedDate, @LastModifiedDate, @CreatedBy, and @LastModifiedBy.
  * This helps track who made changes to your data and when, without manual intervention.
+ * @EnableConfigurationProperties is a Spring Boot annotation that is used to enable support for @ConfigurationProperties-annotated classes.
+ *  It allows you to bind external configuration properties (like those in application.properties or application.yml) to Java objects.
  */
 @SpringBootApplication
 @EnableJpaAuditing(auditorAwareRef = "auditAwareImpl")
+@EnableConfigurationProperties(value = {LoansContactInfoDto.class})
 @OpenAPIDefinition(
 		info = @Info(
 				title = "Loans Microservice API Documentation",
