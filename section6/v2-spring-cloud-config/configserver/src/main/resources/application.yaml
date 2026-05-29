@@ -1,0 +1,58 @@
+# Access application configurations using the url: http://localhost:8071/{application}/{profile}
+# profile could be default, qa, prod
+# application could be accounts, cards, loans
+
+spring:
+  application:
+    name: "configserver"
+
+  profiles:
+#    active: native # Set the active profile to 'native' to use local file system or classpath for configuration files
+    active: git    # Set the active profile to 'git' to use Git repository for configuration files
+
+  # Configure the Config Server to read configuration files from the specified location
+  cloud:
+    config:
+      server:
+#        native:
+##          search-locations: "classpath:/config" # Read Configuration files from src/main/resources/config folder
+#          search-locations: "file:///Users//ldeepak//Personal//Dev//Microservices-using-Springboot//section6//v2-spring-cloud-config//config"   # Read Configuration files from external config folder
+        git:
+          uri: "https://github.com/Deepak-147/microservices-config"
+          default-label: main
+          timeout: 5
+          clone-on-start: true
+          force-pull: true
+
+  # Configure RabbitMQ connection
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+
+encrypt:
+  # Set a symmetric key for encryption and decryption of properties
+  # Here we have encrypted email value for accounts prod config using this key and stored in the git repo
+  key: "45D81EC1EF61DF9AD8D3E5BB397F9"
+
+server:
+  port: 8071
+
+# Expose all management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+  endpoint:
+    health:
+      probes:
+        enabled: true
+
+

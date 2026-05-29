@@ -34,6 +34,10 @@ import org.springframework.web.bind.annotation.*;
  * @Validated enables validation for method parameters in this controller. It is used for validating method parameters, typically primitive types or simple values (like @RequestParam).
  * @Valid is used for validating complex types (objects), such as DTOs passed in the request body (like @RequestBody).
  * @AllArgsConstructor is a Lombok annotation that generates a constructor with parameters for all fields
+ *
+ * ResponseEntity is a generic class that represents the entire HTTP response, including status code, headers, and body. It allows you to control the HTTP response returned from your controller methods.
+ * @RequestBody is used to bind the HTTP request body to a Java object (like CustomerDto) and is typically used for POST and PUT requests where you want to send data in the request body.
+ *
  */
 @Tag(
 	name = "Accounts API",
@@ -56,21 +60,21 @@ public class AccountsController {
 	private IAccountsService accountsService;
 
 	@Operation(
-			summary = "Create a new customer and account",
-			description = "Creates a new customer and account with the provided customer details."
+		summary = "Create a new customer and account",
+		description = "Creates a new customer and account with the provided customer details."
 	)
 	@ApiResponses({
-			@ApiResponse(
-					responseCode = "201",
-					description = "HTTP Status CREATED"
-			),
-			@ApiResponse(
-					responseCode = "500",
-					description = "HTTP Status Internal Server Error",
-					content = @Content(
-							schema = @Schema(implementation = ErrorResponseDto.class)
-					)
+		@ApiResponse(
+			responseCode = "201",
+			description = "HTTP Status CREATED"
+		),
+		@ApiResponse(
+			responseCode = "500",
+			description = "HTTP Status Internal Server Error",
+			content = @Content(
+				schema = @Schema(implementation = ErrorResponseDto.class)
 			)
+		)
 	})
 	@PostMapping("/create")
 	public ResponseEntity<ResponseDto> createAccount(@Valid @RequestBody CustomerDto customerDto) {
@@ -80,6 +84,28 @@ public class AccountsController {
 		return ResponseEntity
 				.status(HttpStatus.CREATED)
 				.body(new ResponseDto(AccountsConstants.STATUS_201, AccountsConstants.MESSAGE_201));
+	}
+
+	@GetMapping("/create")
+	public ResponseEntity<CustomerDto> fetchDetails(@RequestParam
+														   @Pattern(regexp="(^$|[0-9]{10})",message = "Mobile number must be 10 digits")
+														   String mobileNumber) {
+		CustomerDto customerDto = accountsService.fetchAccount(mobileNumber);
+
+		return ResponseEntity
+				.status(HttpStatus.OK)
+				.body(customerDto);
+	}
+
+	@GetMapping("/create")
+	public ResponseEntity<CustomerDto> fetchMyDetails(@RequestParam
+													@Pattern(regexp="(^$|[0-9]{10})",message = "Mobile number must be 10 digits")
+													String mobileNumber) {
+		CustomerDto customerDto = accountsService.fetchAccount(mobileNumber);
+
+		return ResponseEntity
+				.status(HttpStatus.OK)
+				.body(customerDto);
 	}
 
 	@Operation(

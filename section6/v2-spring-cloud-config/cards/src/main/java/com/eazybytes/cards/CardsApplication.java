@@ -1,0 +1,51 @@
+package com.eazybytes.cards;
+
+import com.eazybytes.cards.dto.CardsContactInfoDto;
+import io.swagger.v3.oas.annotations.ExternalDocumentation;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
+
+/**
+ * @EnableJpaAuditing is a Spring annotation that enables JPA Auditing in your application.
+ * It allows Spring Data JPA to automatically populate auditing fields like created date, last modified date, created by, and last modified by in your entities when you use annotations such as @CreatedDate, @LastModifiedDate, @CreatedBy, and @LastModifiedBy.
+ * This helps track who made changes to your data and when, without manual intervention.
+ *
+ * @EnableConfigurationProperties is a Spring Boot annotation that is used to enable support for @ConfigurationProperties-annotated classes.
+ * It allows you to bind external configuration properties (like those in application.properties or application.yml) to Java objects.
+ */
+@SpringBootApplication
+@EnableJpaAuditing(auditorAwareRef = "auditAwareImpl")
+@EnableConfigurationProperties(value = {CardsContactInfoDto.class})
+@OpenAPIDefinition(
+		info = @Info(
+				title = "Cards Microservice API Documentation",
+				version = "1.0",
+				description = "API documentation for the Cards Microservice",
+				contact = @Contact(
+						name = "Deepak Laxkar",
+						email = "deepaklaxkar11@gmail.com",
+						url = "www.google.com"
+				),
+				license = @License(
+						name = "Apache 2.0",
+						url = "http://www.apache.org/licenses/LICENSE-2.0.html"
+				)
+		),
+		externalDocs = @ExternalDocumentation(
+				description = "Cards Microservice Wiki Documentation",
+				url = "www.google.com"
+		)
+)
+public class CardsApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(CardsApplication.class, args);
+	}
+
+}

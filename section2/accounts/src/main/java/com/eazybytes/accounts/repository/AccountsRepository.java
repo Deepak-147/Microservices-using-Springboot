@@ -12,7 +12,7 @@ import java.util.Optional;
 /**
  * Author: ldeepak
  *
- * Repository interface for Customer entity operations.
+ * Repository interface for Accounts entity operations.
  */
 
 /**

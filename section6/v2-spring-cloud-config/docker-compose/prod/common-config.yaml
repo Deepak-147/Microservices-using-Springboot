@@ -1,0 +1,28 @@
+# This file contains common configuration for microservices to be used in different deployment scenarios.
+services:
+  network-deploy-service:
+    networks:
+      - eazybank
+
+  # This is the base configuration for microservices that will be used in different deployment scenarios.
+  # It extends the network-deploy-service to ensure that all microservices are part of the same network and can communicate with each other.
+  # It also defines common resource limits and environment variables for RabbitMQ connection.
+  microservice-base-config:
+    extends:
+      service: network-deploy-service
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+    environment:
+      SPRING_RABBITMQ_HOST: "rabbit"
+
+  # This configuration extends the microservice-base-config and adds specific environment variables for connecting to the Config Server.
+  microservice-configserver-config:
+    extends:
+      service: microservice-base-config
+    # Setting these properties via environment variables. It follows the syntax of uppercase with underscores, instead of dots.
+    # For example, SPRING_PROFILES_ACTIVE corresponds to spring.profiles.active in application.yaml. This value in environment variable will override the one in application.yaml.
+    environment:
+      SPRING_PROFILES_ACTIVE: prod
+      SPRING_CONFIG_IMPORT: "configserver:http://configserver:8071/" # passing as environment variable because for local development the config server url would be localhost but in docker environment should use the service name configserver

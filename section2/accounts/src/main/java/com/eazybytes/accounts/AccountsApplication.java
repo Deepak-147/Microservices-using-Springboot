@@ -18,24 +18,24 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 @SpringBootApplication
 @EnableJpaAuditing(auditorAwareRef = "auditAwareImpl")
 @OpenAPIDefinition(
-		info = @Info(
-				title = "Accounts Microservice API Documentation",
-				version = "1.0",
-				description = "API documentation for the Accounts Microservice",
-				contact = @Contact(
-						name = "Deepak Laxkar",
-						email = "deepaklaxkar11@gmail.com",
-						url = "www.google.com"
-				),
-				license = @License(
-						name = "Apache 2.0",
-						url = "http://www.apache.org/licenses/LICENSE-2.0.html"
-				)
+	info = @Info(
+		title = "Accounts Microservice API Documentation",
+		version = "1.0",
+		description = "API documentation for the Accounts Microservice",
+		contact = @Contact(
+			name = "Deepak Laxkar",
+			email = "deepaklaxkar11@gmail.com",
+			url = "www.google.com"
 		),
-		externalDocs = @ExternalDocumentation(
-				description = "Accounts Microservice Wiki Documentation",
-				url = "www.google.com"
+		license = @License(
+			name = "Apache 2.0",
+			url = "http://www.apache.org/licenses/LICENSE-2.0.html"
 		)
+	),
+	externalDocs = @ExternalDocumentation(
+		description = "Accounts Microservice Wiki Documentation",
+		url = "www.google.com"
+	)
 )
 public class AccountsApplication {
 

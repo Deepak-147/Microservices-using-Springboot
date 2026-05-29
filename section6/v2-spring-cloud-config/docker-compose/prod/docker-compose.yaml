@@ -1,0 +1,86 @@
+services:
+  rabbit:
+    image: rabbitmq:3.12-management
+    hostname: rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    extends:
+      file: common-config.yaml
+      service: network-deploy-service
+
+  configserver:
+    image: "ldeepak/configserver:s6"
+    container_name: configserver-ms
+    ports:
+      - "8071:8071"
+    # This makes sure that the service starts only when rabbit is healthy
+    depends_on:
+      rabbit:
+        condition: service_healthy
+    # Define a healthcheck to ensure the configserver is up and running before other services depend on it
+    healthcheck:
+      test: "curl --fail --silent localhost:8071/actuator/health/readiness | grep UP || exit 1"
+      # check every 10 seconds, wait 5 seconds before timing out, retry up to 10 times, and allow a start period of 10 seconds
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    extends:
+      file: common-config.yaml
+      service: microservice-base-config
+
+  accounts:
+    image: "ldeepak/accounts:s6"
+    container_name: accounts-ms
+    ports:
+      - "8080:8080"
+    # This makes sure that the service starts only when configserver is healthy
+    depends_on:
+      configserver:
+        condition: service_healthy
+    environment:
+      SPRING_APPLICATION_NAME: "accounts"
+    extends:
+      file: common-config.yaml
+      service: microservice-configserver-config
+
+  loans:
+    image: "ldeepak/loans:s6"
+    container_name: loans-ms
+    ports:
+      - "8090:8090"
+    # This makes sure that the service starts only when configserver is healthy
+    depends_on:
+      configserver:
+        condition: service_healthy
+    environment:
+      SPRING_APPLICATION_NAME: "loans"
+    extends:
+      file: common-config.yaml
+      service: microservice-configserver-config
+
+  cards:
+    image: "ldeepak/cards:s6"
+    container_name: cards-ms
+    ports:
+      - "9000:9000"
+    # This makes sure that the service starts only when configserver is healthy
+    depends_on:
+      configserver:
+        condition: service_healthy
+    environment:
+      SPRING_APPLICATION_NAME: "cards"
+    extends:
+      file: common-config.yaml
+      service: microservice-configserver-config
+
+networks:
+  eazybank:
+    driver: "bridge"
