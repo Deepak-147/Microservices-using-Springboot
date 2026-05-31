@@ -279,7 +279,7 @@ Microservices using springboot
 
   ![schema](./images/schema.png)
 
-> ⚠️ **Warning:** DO NOT delete the containers. You can stop them, but do not delete them, as you will lose all the data.DO NOT delete the containers. You can stop them, but do not delete. As you will loose all the data.
+> ⚠️ **Warning:** DO NOT delete the containers. You can stop them, but do not delete them, as you will lose all the data.
 
 - Verify the API endpoints
 
