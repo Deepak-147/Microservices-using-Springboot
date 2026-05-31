@@ -223,3 +223,69 @@ Microservices using springboot
             ![Alt Text](./images/github-webhook-requests.png)
 
             ![Alt Text](./images/hookdeck-cli-requests.png)
+
+### Section 7: MySQL DB integration
+- To simplify the future development, removing the bus refresh functionality as it requires running rabbitmq and requires creating multiple container.
+
+  Removed ```spring-cloud-starter-bus-amqp``` in pom.xml of the microservices.
+
+  Removed rabbitmq connection properties in application.yaml of the microservices.
+
+- **Running MySQL DB as Docker container**
+
+  We will be using Docker image to run mysql in a docker container. Also we require 3 databases one for each of the service.
+
+  **AccountsDB:**
+  
+  ```docker run -p 3306:3306 --name accountsdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=accountsdb -d mysql```
+
+  Breakdown of the command:
+
+  - ```-p 3306:3303```: Maps host port 3306 -> container port 3306 (MySQL's default port). This lets your local machine connect to MySQL inside the container.
+
+  - ```--name accountsdb```: Assigns a friendly name to the container, instead of a random one.
+
+  - ```-e```: Sets environment variable inside the container
+
+  - ```mysql```: The Docker image to use (pulled from Docker Hub if not present in local)
+
+  **LoansDB:**
+
+  ```docker run -p 3307:3306 --name loansdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=loansdb -d mysql```
+
+  Notice the use of different host port number 3307, since 3306 is already consumed by accountsdb
+
+  **CardsDB:**
+
+  ```docker run -p 3308:3306 --name cardsdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=cardsdb -d mysql```
+
+  Notice the use of different host port number 3308, since 3307 is already consumed by loansdb
+
+  ![MySQL DB Containers](./images/mysql-db-containers.png)
+
+- We will use SQLectron GUI client to work with SQL and add 3 connections one for each DB.
+
+  ![SQLectron-connection-add](./images/sqlelectron-add-connection.png)
+
+  <br>
+
+  ![SQLectron](./images/sqlelectron.png)
+
+- Remove H2 DB dependency from Microservices and add MySQL dependency
+
+- Remove H2 related properties in application.yaml of microservices and update mysql connection url
+
+- Now run all the services, along with config server. The schema.sql should execute and create the schema for the tables.
+
+  ![schema](./images/schema.png)
+
+> ⚠️ **Warning:** DO NOT delete the containers. You can stop them, but do not delete them, as you will lose all the data.DO NOT delete the containers. You can stop them, but do not delete. As you will loose all the data.
+
+- Verify the API endpoints
+
+- Generate Docker images after updating the image tag for each service from s6 to s7
+
+- Update Docker files (common-config.yaml and docker-compose.yaml) with below changes:
+  - Remove rabbitmq configs and dependencies
+  - Add db services
+  - Microservices should now depend on db service health

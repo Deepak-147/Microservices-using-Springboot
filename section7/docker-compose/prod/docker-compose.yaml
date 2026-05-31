@@ -1,0 +1,103 @@
+services:
+  accountsdb:
+    container_name: accountsdb
+    # Note that we are mapping port 3306 of the container to port 3306 on the host machine.
+    # This means that you can connect to the accountsdb MySQL database using localhost:3306 from your host machine (using Sqlectron GUI)
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: accountsdb
+    extends:
+      file: common-config.yaml
+      service: microservice-db-config
+
+  loansdb:
+    container_name: loansdb
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_DATABASE: loansdb
+    extends:
+      file: common-config.yaml
+      service: microservice-db-config
+
+  cardsdb:
+    container_name: cardsdb
+    ports:
+      - "3308:3306"
+    environment:
+      MYSQL_DATABASE: cardsdb
+    extends:
+      file: common-config.yaml
+      service: microservice-db-config
+
+  configserver:
+    image: "ldeepak/configserver:s7"
+    container_name: configserver-ms
+    ports:
+      - "8071:8071"
+    # Define a healthcheck to ensure the configserver is up and running before other services depend on it
+    healthcheck:
+      test: "curl --fail --silent localhost:8071/actuator/health/readiness | grep UP || exit 1"
+      # check every 10 seconds, wait 5 seconds before timing out, retry up to 10 times, and allow a start period of 10 seconds
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    extends:
+      file: common-config.yaml
+      service: microservice-base-config
+
+  accounts:
+    image: "ldeepak/accounts:s7"
+    container_name: accounts-ms
+    ports:
+      - "8080:8080"
+    # This makes sure that the service starts only when accountsdb is healthy
+    depends_on:
+      accountsdb:
+        condition: service_healthy
+    environment:
+      SPRING_APPLICATION_NAME: "accounts"
+      # Notice that the port is 3306, which is the default MySQL port, and not 3307 or 3308.
+      # This is because within the Docker network, the services communicate using the internal ports, not the ones exposed to the host machine.
+      SPRING_DATASOURCE_URL: "jdbc:mysql://accountsdb:3306/accountsdb"
+    extends:
+      file: common-config.yaml
+      service: microservice-configserver-config
+
+  loans:
+    image: "ldeepak/loans:s7"
+    container_name: loans-ms
+    ports:
+      - "8090:8090"
+    # This makes sure that the service starts only when loansdb is healthy
+    depends_on:
+      loansdb:
+        condition: service_healthy
+    environment:
+      SPRING_APPLICATION_NAME: "loans"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://loansdb:3306/loansdb"
+    extends:
+      file: common-config.yaml
+      service: microservice-configserver-config
+
+  cards:
+    image: "ldeepak/cards:s7"
+    container_name: cards-ms
+    ports:
+      - "9000:9000"
+    # This makes sure that the service starts only when cardsdb is healthy
+    depends_on:
+      cardsdb:
+        condition: service_healthy
+    environment:
+      SPRING_APPLICATION_NAME: "cards"
+      SPRING_DATASOURCE_URL: "jdbc:mysql://cardsdb:3306/cardsdb"
+    extends:
+      file: common-config.yaml
+      service: microservice-configserver-config
+
+networks:
+  eazybank:
+    driver: "bridge"

@@ -1,0 +1,41 @@
+# This file contains common configuration for microservices to be used in different deployment scenarios.
+services:
+  network-deploy-service:
+    networks:
+      - eazybank
+
+  microservice-db-config:
+    extends:
+      service: network-deploy-service
+    image: mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      timeout: 10s
+      retries: 10
+      interval: 10s
+      start_period: 10s
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+
+  microservice-base-config:
+    extends:
+      service: network-deploy-service
+    deploy:
+      resources:
+        limits:
+          memory: 700m
+
+  microservice-configserver-config:
+    extends:
+      service: microservice-base-config
+    # This makes sure that the service starts only when configserver is healthy
+    depends_on:
+      configserver:
+        condition: service_healthy
+    # Setting these properties via environment variables. It follows the syntax of uppercase with underscores, instead of dots.
+    # For example, SPRING_PROFILES_ACTIVE corresponds to spring.profiles.active in application.yaml. This value in environment variable will override the one in application.yaml.
+    environment:
+      SPRING_PROFILES_ACTIVE: default
+      SPRING_CONFIG_IMPORT: "configserver:http://configserver:8071/" # passing as environment variable because for local development the config server url would be localhost but in docker environment should use the service name configserver
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
