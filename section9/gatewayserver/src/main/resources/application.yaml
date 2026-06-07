@@ -1,0 +1,50 @@
+spring:
+  application:
+    name: "gatewayserver"
+  # import configurations from the Config Server.
+  # Microservice will get the configurations from Config Server at the startup only. But what if the configurations are changed in the Config Server and you want those changes to be reflected in the microservice without restarting it?
+  config:
+    import: "optional:configserver:http://localhost:8071/"
+
+ # Enable service discovery for the gateway server. This allows the gateway to discover other services registered with Eureka and route requests to them.
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              # When enabled, the gateway will automatically create routes for all services registered with Eureka. The route ID will be the same as the service ID, and the path will be /{serviceId}/**. For example, if you have a service registered with Eureka with the service ID "accounts-service", the gateway will create a route with the path /accounts-service/** that routes to that service.
+              # We have set it to false because we want to define custom routes in the gateway instead of automatically creating routes for all services registered with Eureka. This allows us to have more control over the routing and to define specific routes for each service as needed.
+              enabled: false
+              # This property is used to convert the service IDs to lower case before looking them up in the service registry.
+              # This can be useful if your service IDs are in upper case or mixed case and you want to ensure that they are matched correctly when routing requests through the gateway.
+              lower-case-service-id: true
+
+# Expose all management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  # Gateway actuator endpoint is used to view the routes configured in the gateway. By default, it is disabled for security reasons. Setting access to unrestricted allows you to access the gateway routes through the /actuator/gateway endpoint.
+  endpoint:
+    gateway:
+      access: unrestricted
+  # Environment endpoint is used to view the environment properties of the application. By default, it is disabled for security reasons. Setting enabled to true allows you to access the environment properties through the /actuator/env endpoint.
+  info:
+    env:
+      enabled: true
+
+# Information displayed in the Eureka dashboard for this service instance
+info:
+  app:
+    name: "gatewayserver"
+    description: "Eazy Bank Gateway Server Application"
+    version: "1.0.0"
+
+# Set the logging level for the gateway server to DEBUG. This will enable detailed logging for the gateway server, which can be helpful for troubleshooting and monitoring the application.
+logging:
+  level:
+    com:
+      eazybytes:
+        gatewayserver: DEBUG

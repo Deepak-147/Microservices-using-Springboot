@@ -1,0 +1,65 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: "accounts"
+  profiles:
+    active:
+      - "prod"
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update # Hibernate will automatically update the schema based on your entities
+    show-sql: true
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql # On startup, Spring Boot will always run the SQL script located at classpath:schema.sql (in src/main/resources/).
+
+  # import configurations from the Config Server.
+  # Microservice will get the configurations from Config Server at the startup only. But what if the configurations are changed in the Config Server and you want those changes to be reflected in the microservice without restarting it?
+  config:
+    import: "optional:configserver:http://localhost:8071/"
+
+# Expose all management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  # Shutdown endpoint is used to gracefully shut down the application. It is useful to de-register the service instance from Eureka before shutting down the application.
+  endpoint:
+    shutdown:
+      enabled: true
+  # Environment endpoint is used to view the environment properties of the application. By default, it is disabled for security reasons. Setting enabled to true allows you to access the environment properties through the /actuator/env endpoint.
+  info:
+    env:
+      enabled: true
+eureka:
+  instance:
+    # By default, Eureka uses the hostname of the machine as the instance ID.
+    # However, in some cases (e.g., when running in a containerized environment), the hostname may not be unique or may not resolve correctly.
+    # Setting preferIpAddress to true tells Eureka to use the IP address of the instance instead of the hostname when registering with the Eureka server.
+    preferIpAddress: true
+  client:
+    # fetchRegistry: true means that the Eureka client will fetch the registry information from the Eureka server. This allows the client to discover other services registered with Eureka and perform load balancing and failover when making requests to those services.
+    # registerWithEureka: true means that the Eureka client will register itself with the Eureka server. This allows other services to discover this service and make requests to it.
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/
+
+# Information displayed in the Eureka dashboard for this service instance
+info:
+    app:
+        name: "accounts"
+        description: "Eazy Bank Accounts Application"
+        version: "1.0.0"

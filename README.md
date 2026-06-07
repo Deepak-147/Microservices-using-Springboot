@@ -56,12 +56,20 @@ Microservices using springboot
     ![Alt Text](./images/list-containers.png)
   
 - **Pushing the docker images to docker repository using Docker desktop UI**
-    ![Alt Text](./images/docker-push.png)
+
+    ![Docker-image-push-ui](./images/docker-push.png)
+
+    OR
+
+    Using Command: ```docker image push docker.io/<account-name>/<image>:<tag>```
+
+    ![Docker-image-push-cmd](./images/image-push.png)
+
     
 - **Docker compose**
   To run multi-container applications
     - Create docker-compose.yaml file
-    - Run all the containers at once using ```docker compose up``` command
+    - Run all the containers at once using ```docker compose up -d``` command
 
       ![Alt Text](./images/docker-compose-up.png)
 
@@ -74,9 +82,11 @@ Microservices using springboot
 ### Section 6: Configuration Management in Microservices
 
 - **Challenges:**
-  - How do we separate the configuration/properties from the microservices so that the same docker image can be deployed in different environments
-  - How do we inject the configuration/properties needed by the microservice during the startup of the service
-  - How do we maintain configuration/properties in a centralized repository along with versioning
+  - How do we separate the configuration/properties from the microservices so that the same docker image can be deployed in different environments ? <br>(Answer: Configuring Spring Boot with properties and profiles)
+
+  - How do we inject the configuration/properties needed by the microservice during the startup of the service ? <br>(Answer: Applying external configuration with Spring Boot)
+
+  - How do we maintain configuration/properties in a centralized repository along with versioning <br>(Answer: Implementing a configuration server with Spring Cloud Config server (RECOMMENDED))
 
 - **Solutions:**
   - **Configuring Spring Boot with properties and profiles**
@@ -225,67 +235,220 @@ Microservices using springboot
             ![Alt Text](./images/hookdeck-cli-requests.png)
 
 ### Section 7: MySQL DB integration
-- To simplify the future development, removing the bus refresh functionality as it requires running rabbitmq and requires creating multiple container.
+  - To simplify the future development, removing the bus refresh functionality as it requires running rabbitmq and requires creating multiple container.
 
-  Removed ```spring-cloud-starter-bus-amqp``` in pom.xml of the microservices.
+    Removed ```spring-cloud-starter-bus-amqp``` in pom.xml of the microservices.
 
-  Removed rabbitmq connection properties in application.yaml of the microservices.
+    Removed rabbitmq connection properties in application.yaml of the microservices.
 
-- **Running MySQL DB as Docker container**
+  - **Running MySQL DB as Docker container**
 
-  We will be using Docker image to run mysql in a docker container. Also we require 3 databases one for each of the service.
+    We will be using Docker image to run mysql in a docker container. Also we require 3 databases one for each of the service.
 
-  **AccountsDB:**
+    **AccountsDB:**
+    
+    ```docker run -p 3306:3306 --name accountsdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=accountsdb -d mysql```
+
+    Breakdown of the command:
+
+    - ```-p 3306:3303```: Maps host port 3306 -> container port 3306 (MySQL's default port). This lets your local machine connect to MySQL inside the container.
+
+    - ```--name accountsdb```: Assigns a friendly name to the container, instead of a random one.
+
+    - ```-e```: Sets environment variable inside the container
+
+    - ```mysql```: The Docker image to use (pulled from Docker Hub if not present in local)
+
+    **LoansDB:**
+
+    ```docker run -p 3307:3306 --name loansdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=loansdb -d mysql```
+
+    Notice the use of different host port number 3307, since 3306 is already consumed by accountsdb
+
+    **CardsDB:**
+
+    ```docker run -p 3308:3306 --name cardsdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=cardsdb -d mysql```
+
+    Notice the use of different host port number 3308, since 3307 is already consumed by loansdb
+
+    ![MySQL DB Containers](./images/mysql-db-containers.png)
+
+  - We will use SQLectron GUI client to work with SQL and add 3 connections one for each DB.
+
+    ![SQLectron-connection-add](./images/sqlelectron-add-connection.png)
+
+    <br>
+
+    ![SQLectron](./images/sqlelectron.png)
+
+  - Remove H2 DB dependency from Microservices and add MySQL dependency
+
+  - Remove H2 related properties in application.yaml of microservices and update mysql connection url
+
+  - Now run all the services, along with config server. The schema.sql should execute and create the schema for the tables.
+
+    ![schema](./images/schema.png)
+
+  > ⚠️ **Warning:** DO NOT delete the containers. You can stop them, but do not delete them, as you will lose all the data.
+
+  - Verify the API endpoints locally
+
+  > **Note:** We will NOT be pushing s7 to DockerHub. So below steps are not required. <br>This section was introduction to db integration. Section 8 will be copied from Section 6 with H2 db.
+
+  - Generate Docker images after updating the image tag for each service from s6 to s7
+
+  - Update Docker files (common-config.yaml and docker-compose.yaml) with below changes:
+    - Remove rabbitmq configs and dependencies
+    - Add db services
+    - Microservices should now depend on db service health
+
+### Section 8: Service Discovery & Service Registration in Microservices
+
+  - **Challenges:**
+    
+    - How do services locate each other inside a network? <br>(Answer: Service discovery)
+
+    - How do the new service instance enter into the network? <br>(Answer: Service registration)
+
+    - How do a specific service information is shared across the network and how to load balance b/w multiple microservice instances ? <br>(Answer: Load balancing)
+
+    ![cloud-native](./images/cloud-native-problem-solutions.png)
+    
+    <br>
+
+    ![central-server](./images/central-server.png)
+
+    <br>
+
+    ![client-side-sd-sr-lb](./images/client-side-sd-sr-lb.png)
+
+    <br>
+
+    ![sd-sr-lb](./images/sd-sr-lb.png)
+
+    <br>
+
+    ![sd](./images/sd.png)
+
+    <br>
+
+    ![lb](./images/lb.png)
+
+    <br>
+
+    ![spring-cloud-support](./images/spring-cloud-support.png)
+
+
+  - **Setup Eureka Server**:
+
+    - Download a new project from spring initializer (start.spring.io) with following dependencies:
+
+      - ```spring-cloud-starter-netflix-eureka-server```
+      - ```spring-cloud-starter-config```
+      - ```spring-boot-starter-actuator```
+    
+    - Configure properties in application.yml file
+
+    - Add @EnableEurekaServer annotation to main class
+
+    - Build and run eureka server on ```http://localhost:8070/```
+
+      ![eureka-dashboard](./images/eureka-dashboard.png)
+
+  - **Setup Eureka Client (Individual microservices)**:
+
+    - Add ```spring-cloud-starter-netflix-eureka-client``` dependency in pom.xml
+    
+    - Configure properties in application.yml file
+
+    - Build and run eureka server on ```http://localhost:8070/```
+
+      ![eureka-dashboard-with-clients](./images/eureka-dashboard-with-clients.png)
+
+    - Graceful Shutdown using actuator endpoint: ```http://localhost:8080/actuator/shutdown```. This will de-register our services from Eureka and terminate them.
+
+  - **Communication between Microservices**:
+
+    - Add ```spring-cloud-starter-openfeign``` dependency inside pom.xml of the microservice that wants to connect to other microservice (in our case inside accounts)
+
+    - Add interface for feign client (like CardsFeignClient and LoansFeignClient). Copy the method signature from respective microservice. Copy necessary DTO classes as required.
+
+    - Write business logic in the service layer and expose the endpoint as rest controller.
+
+    - ```http://localhost:8080/api/fetchCustomerDetails?mobileNumber=``` is one endpoint which fetches customer details using mobile number by combining data from cards and loans microservice. Internally it communicates with cards and loans microserives using feign client.
+
+  - **Eureka Self preservation**
+
+    ![eureka-self-1](./images/eureka-self-1.png)
+    <br><br>
+    ![eureka-props](./images/eureka-props.png)
+    <br><br>
+    ![eureka-warning](./images/eureka-warning.png)
+    <br>
+
+  - Generate Docker images after updating the image tag for each service from s6 to s8
+
+    ![s8-images](./images/s8-images.png)
+
+  - Push the images to Docker Hub
+
+    ![Docker-hub](./images/docker-hub.png)
+
+  - Update Docker files (common-config.yaml and docker-compose.yaml) to add eureka server
+
+  - Use Docker compose to Run all the containers at once
+
+  - Verify the API endpoints
+
+
+### Section 9: Gateway, Routing and Cross cutting concerns
+
+  - **Challenges:**
+
+    - How do we maintain a single entrypoint into microservice network?
+
+    - How do we handle cross cutting concerns like logging, auditing, tracing and security across multiple microservices?
+
+    - How do we route based on custom requirements <br>(Answer to all above: API gateway or Edge server)
+
+    ![gateway-functions](./images/gateway-functions.png) <br><br>
+
+    ![gateway-architecture](./images/gateway-architecture.png)
   
-  ```docker run -p 3306:3306 --name accountsdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=accountsdb -d mysql```
+  - **Setup Gateway Server**:
 
-  Breakdown of the command:
+    - Download a new project from spring initializer (start.spring.io) with following dependencies:
 
-  - ```-p 3306:3303```: Maps host port 3306 -> container port 3306 (MySQL's default port). This lets your local machine connect to MySQL inside the container.
+      - ```spring-cloud-starter-gateway-server-webflux```
+      - ```spring-cloud-starter-netflix-eureka-client```
+      - ```spring-cloud-starter-config```
+      - ```spring-boot-starter-actuator```
+    
+    - Configure properties in application.yml file
 
-  - ```--name accountsdb```: Assigns a friendly name to the container, instead of a random one.
+    - Run the services one by one
 
-  - ```-e```: Sets environment variable inside the container
+    - Check instances of services registered on Eureka Server```http://localhost:8070/```
 
-  - ```mysql```: The Docker image to use (pulled from Docker Hub if not present in local)
+      ![eureka-with-gateway](./images/eureka-with-gateway.png)
 
-  **LoansDB:**
+  - **Custom routing:**
 
-  ```docker run -p 3307:3306 --name loansdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=loansdb -d mysql```
+    - We can create a bean which returns RouteLocator and add custom route configuration to this.
 
-  Notice the use of different host port number 3307, since 3306 is already consumed by accountsdb
+  - **Tracing and Logging:**
 
-  **CardsDB:**
+    This helps in tracing the request across multiple services.
 
-  ```docker run -p 3308:3306 --name cardsdb -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=cardsdb -d mysql```
+    - Add correlation-id header to requests and responses <br>
+    - Add logger statements for debugging <br>
+  
+  - Generate Docker images after updating the image tag for each service from s8 to s9
 
-  Notice the use of different host port number 3308, since 3307 is already consumed by loansdb
+  - Push the images to Docker Hub
 
-  ![MySQL DB Containers](./images/mysql-db-containers.png)
+  - Update Docker files (common-config.yaml and docker-compose.yaml) to add gateway server
 
-- We will use SQLectron GUI client to work with SQL and add 3 connections one for each DB.
+  - Use Docker compose to Run all the containers at once
 
-  ![SQLectron-connection-add](./images/sqlelectron-add-connection.png)
-
-  <br>
-
-  ![SQLectron](./images/sqlelectron.png)
-
-- Remove H2 DB dependency from Microservices and add MySQL dependency
-
-- Remove H2 related properties in application.yaml of microservices and update mysql connection url
-
-- Now run all the services, along with config server. The schema.sql should execute and create the schema for the tables.
-
-  ![schema](./images/schema.png)
-
-> ⚠️ **Warning:** DO NOT delete the containers. You can stop them, but do not delete them, as you will lose all the data.
-
-- Verify the API endpoints
-
-- Generate Docker images after updating the image tag for each service from s6 to s7
-
-- Update Docker files (common-config.yaml and docker-compose.yaml) with below changes:
-  - Remove rabbitmq configs and dependencies
-  - Add db services
-  - Microservices should now depend on db service health
+  - Verify the API endpoints
