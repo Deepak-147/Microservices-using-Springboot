@@ -1,0 +1,95 @@
+server:
+  port: 8080
+spring:
+  application:
+    name: "accounts"
+  profiles:
+    active:
+      - "prod"
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driverClassName: org.h2.Driver
+    username: sa
+    password: ''
+  h2:
+    console:
+      enabled: true
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update # Hibernate will automatically update the schema based on your entities
+    show-sql: true
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema.sql # On startup, Spring Boot will always run the SQL script located at classpath:schema.sql (in src/main/resources/).
+
+  # import configurations from the Config Server.
+  # Microservice will get the configurations from Config Server at the startup only. But what if the configurations are changed in the Config Server and you want those changes to be reflected in the microservice without restarting it?
+  config:
+    import: "optional:configserver:http://localhost:8071/"
+
+  # Activate circuit breaker for feign clients. This allows the application to use circuit breakers for handling failures when making requests to other services through Feign clients.
+  cloud:
+    openfeign:
+      circuitbreaker:
+        enabled: true
+
+# Expose all management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+  # Shutdown endpoint is used to gracefully shut down the application. It is useful to de-register the service instance from Eureka before shutting down the application.
+  endpoint:
+    shutdown:
+      enabled: true
+    health:
+      probes:
+        enabled: true
+  # Environment endpoint is used to view the environment properties of the application. By default, it is disabled for security reasons. Setting enabled to true allows you to access the environment properties through the /actuator/env endpoint.
+  info:
+    env:
+      enabled: true
+eureka:
+  instance:
+    # By default, Eureka uses the hostname of the machine as the instance ID.
+    # However, in some cases (e.g., when running in a containerized environment), the hostname may not be unique or may not resolve correctly.
+    # Setting preferIpAddress to true tells Eureka to use the IP address of the instance instead of the hostname when registering with the Eureka server.
+    preferIpAddress: true
+  client:
+    # fetchRegistry: true means that the Eureka client will fetch the registry information from the Eureka server. This allows the client to discover other services registered with Eureka and perform load balancing and failover when making requests to those services.
+    # registerWithEureka: true means that the Eureka client will register itself with the Eureka server. This allows other services to discover this service and make requests to it.
+    fetchRegistry: true
+    registerWithEureka: true
+    serviceUrl:
+      defaultZone: http://localhost:8070/eureka/
+
+# Information displayed in the Eureka dashboard for this service instance
+info:
+  app:
+    name: "accounts"
+    description: "Eazy Bank Accounts Application"
+    version: "1.0.0"
+
+logging:
+  level:
+    com:
+      eazybytes:
+        accounts: DEBUG
+
+# Resilience4j is a fault tolerance library designed for Java applications. It provides various features such as circuit breakers, rate limiters, retries, and bulkheads to help improve the resilience of your application.
+# The configuration below sets up a circuit breaker with specific parameters to control how it behaves in case of failures.
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 10 # The number of calls to consider when calculating the failure rate. In this case, the circuit breaker will look at the last 10 calls to determine if it should open the circuit.
+      permittedNumberOfCallsInHalfOpenState: 2 # The number of calls that are allowed to pass through when the circuit is in the half-open state. This allows the system to test if the underlying issue has been resolved before fully closing the circuit again.
+      failureRateThreshold: 50 # The percentage of failed calls that will trigger the circuit breaker to open. In this case, if 50% or more of the calls fail, the circuit will open and prevent further calls from being made to the service until it is reset.
+      waitDurationInOpenState: 10000 # The amount of time (in milliseconds) that the circuit breaker will wait before transitioning from the open state to the half-open state. In this case, it will wait for 10 seconds before allowing a limited number of calls to pass through to test if the issue has been resolved.

@@ -426,7 +426,7 @@ Microservices using springboot
     
     - Configure properties in application.yml file
 
-    - Run the services one by one
+    - Run the services one by one in order (config server < eureka server < individual microservices < gateway server)
 
     - Check instances of services registered on Eureka Server```http://localhost:8070/```
 
@@ -452,3 +452,57 @@ Microservices using springboot
   - Use Docker compose to Run all the containers at once
 
   - Verify the API endpoints
+
+### Section 10: Resiliency in Microservices
+
+  - **Challenges:**
+
+    - How do we avoid cascading failures?
+
+    - How do we handle failures gracefully with fallbacks?
+
+    - How to make our services self-healing?
+
+      (Answer to all above: Resilience4J, a fault-tolerance library for Java)
+
+    ![resilience4j](./images/resilience4j.png) <br>
+
+    ![circuit-breaker-1](./images/circuit-breaker-1.png) <br>
+
+    ![circuit-breaker-2](./images/circuit-breaker-2.png) <br>
+
+    ![circuit-breaker-3](./images/circuit-breaker-3.png) <br>
+  
+  - Circuit breaker pattern in Gateway server
+
+    - Add ```spring-cloud-starter-circuitbreaker-reactor-resilience4j``` dependency in pom.xml
+
+    - Add ```.circuitBreaker()``` and ```.setFallbackUri()``` in the main application file
+
+    - Configure properties in application.yaml
+
+    - Actuator urls:
+      
+      - Circuit breaker configs: ```http://localhost:8072/actuator/circuitbreakers```
+
+      - Circuit breaker events: ```http://localhost:8072/actuator/circuitbreakerevents?name=accountsCircuitBreaker```
+
+    - Intentionally fail an API by introducing a break-point to never let it return. Keep a check at the above actuator urls and notice the circuit breaker state transitions.
+
+  - Circuit breaker pattern in Accounts microservice
+
+    - Add ```spring-cloud-starter-circuitbreaker-resilience4j``` dependency in pom.xml (not sure why the reactor one is not used)
+
+    - Configure properties in application.yaml
+
+    - Update feign clients to support fallback.
+
+    - Now call ```http://localhost:8072/eazybank/accounts/api/fetchCustomerDetails?mobileNumber=```. It returns the data with all the card and loan details
+
+    - What happens if the service is not available or is down? (Answer: Fallback)
+    
+      For this we can intentionally stop cards or loans service, this time the fallback is triggered and ```null``` response is passed for respective service call. The overall response is still success, just that the cards or loans data will be empty. So the fallback works and the service is not impacted.
+
+
+
+    

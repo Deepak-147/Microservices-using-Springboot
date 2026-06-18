@@ -1,0 +1,63 @@
+spring:
+  application:
+    name: "gatewayserver"
+  # import configurations from the Config Server.
+  # Microservice will get the configurations from Config Server at the startup only. But what if the configurations are changed in the Config Server and you want those changes to be reflected in the microservice without restarting it?
+  config:
+    import: "optional:configserver:http://localhost:8071/"
+
+ # Enable service discovery for the gateway server. This allows the gateway to discover other services registered with Eureka and route requests to them.
+  cloud:
+    gateway:
+      server:
+        webflux:
+          discovery:
+            locator:
+              # When enabled, the gateway will automatically create routes for all services registered with Eureka. The route ID will be the same as the service ID, and the path will be /{serviceId}/**. For example, if you have a service registered with Eureka with the service ID "accounts-service", the gateway will create a route with the path /accounts-service/** that routes to that service.
+              # We have set it to false because we want to define custom routes in the gateway instead of automatically creating routes for all services registered with Eureka. This allows us to have more control over the routing and to define specific routes for each service as needed.
+              enabled: false
+              # This property is used to convert the service IDs to lower case before looking them up in the service registry.
+              # This can be useful if your service IDs are in upper case or mixed case and you want to ensure that they are matched correctly when routing requests through the gateway.
+              lower-case-service-id: true
+      httpclient:
+        connect-timeout: 10000 # The amount of time (in milliseconds) that the gateway will wait when trying to establish a connection to a service before timing out. In this case, it will wait for 10 seconds before giving up on the connection attempt.
+        response-timeout: 1s # The amount of time (in seconds) that the gateway will wait for a response from a service after sending a request before timing out
+
+# Expose all management endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  # Gateway actuator endpoint is used to view the routes configured in the gateway. By default, it is disabled for security reasons. Setting access to unrestricted allows you to access the gateway routes through the /actuator/gateway endpoint.
+  endpoint:
+    gateway:
+      access: unrestricted
+  # Environment endpoint is used to view the environment properties of the application. By default, it is disabled for security reasons. Setting enabled to true allows you to access the environment properties through the /actuator/env endpoint.
+  info:
+    env:
+      enabled: true
+
+# Information displayed in the Eureka dashboard for this service instance
+info:
+  app:
+    name: "gatewayserver"
+    description: "Eazy Bank Gateway Server Application"
+    version: "1.0.0"
+
+# Set the logging level for the gateway server to DEBUG. This will enable detailed logging for the gateway server, which can be helpful for troubleshooting and monitoring the application.
+logging:
+  level:
+    com:
+      eazybytes:
+        gatewayserver: DEBUG
+
+# Resilience4j is a fault tolerance library designed for Java applications. It provides various features such as circuit breakers, rate limiters, retries, and bulkheads to help improve the resilience of your application.
+# The configuration below sets up a circuit breaker with specific parameters to control how it behaves in case of failures.
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 10 # The number of calls to consider when calculating the failure rate. In this case, the circuit breaker will look at the last 10 calls to determine if it should open the circuit.
+      permittedNumberOfCallsInHalfOpenState: 2 # The number of calls that are allowed to pass through when the circuit is in the half-open state. This allows the system to test if the underlying issue has been resolved before fully closing the circuit again.
+      failureRateThreshold: 50 # The percentage of failed calls that will trigger the circuit breaker to open. In this case, if 50% or more of the calls fail, the circuit will open and prevent further calls from being made to the service until it is reset.
+      waitDurationInOpenState: 10000 # The amount of time (in milliseconds) that the circuit breaker will wait before transitioning from the open state to the half-open state. In this case, it will wait for 10 seconds before allowing a limited number of calls to pass through to test if the issue has been resolved.
